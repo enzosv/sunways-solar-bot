@@ -117,7 +117,7 @@ func (overview StationOverview) Storage() Storage {
 		storage.Solar *= 1000
 	}
 	storage.Excess = storage.Solar - storage.Usage
-	storage.IsExcess = storage.Excess > 0
+	storage.IsExcess = storage.Excess > -100
 	storage.Date = overview.Time
 	return storage
 }
@@ -145,6 +145,8 @@ func (storage Storage) Save(path string) error {
 }
 
 func (storage Storage) Post(client *http.Client, sheetyURL, sheetyAuth string) error {
+	// TODO: google sheets api
+	// TODO: batch insert from history per time range
 	row := map[string]interface{}{}
 	row["date"] = storage.Date
 	row["excessWatts"] = storage.Excess
@@ -178,6 +180,7 @@ func (storage Storage) Post(client *http.Client, sheetyURL, sheetyAuth string) e
 }
 
 func main() {
+	// TODO: stop at night
 	output := flag.String("o", "old.json", "output file")
 	configPath := flag.String("c", "config.json", "config file")
 	flag.Parse()
@@ -241,6 +244,8 @@ func fetch(client *http.Client, token string, config Config) (Storage, error) {
 		}
 		return fetch(client, newToken, config)
 	}
+	// TODO: Handle other errors
+	// TODO: notify if down for too long during the day
 	storage := overview.Storage()
 	storage.Token = token
 	return storage, nil
