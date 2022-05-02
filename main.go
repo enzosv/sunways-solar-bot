@@ -171,12 +171,8 @@ func (storage Storage) Post(client *http.Client, sheetyURL, sheetyAuth string) e
 		return err
 	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(body))
-	return nil
+	_, err = ioutil.ReadAll(res.Body)
+	return err
 }
 
 func main() {
@@ -235,6 +231,9 @@ func fetch(client *http.Client, token string, config Config) (Storage, error) {
 	err = json.Unmarshal(body, &overview)
 	if err != nil {
 		return Storage{}, err
+	}
+	if overview.Data.Allinverteroffline {
+		return Storage{}, fmt.Errorf("offline")
 	}
 	if overview.Code == "3010022" {
 		// auth issue
