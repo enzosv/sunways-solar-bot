@@ -124,7 +124,7 @@ func (overview StationOverview) Storage() Storage {
 
 func (storage Storage) Message() string {
 	var e string
-	if storage.Excess > 0 {
+	if storage.Excess >= 0 {
 		e = "☀️ Excess"
 		if storage.Excess >= 700 {
 			e = "☀️☀️ Excess"
