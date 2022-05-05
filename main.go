@@ -100,40 +100,26 @@ const TGURL = "https://api.telegram.org"
 func (overview StationOverview) Storage() Storage {
 	data := overview.Data
 	var storage Storage
-	// storage.IsExcess = data.Arrowinvertergrid == 1
-	// storage.Excess = data.Pmetertotal
-	// if data.Pmetertotalunit == "kW" {
-	// 	storage.Excess *= 1000
-	// }
-	// if data.Arrowinvertergrid != 1 {
-	// 	storage.Excess *= -1
-	// }
 	storage.Usage = data.Pload
-	if data.Ploadunit == "kW" {
-		storage.Usage *= 1000
+	if data.Ploadunit == "W" {
+		storage.Usage /= 1000
 	}
 	storage.Solar = data.Pac
-	if data.Pacunit == "kW" {
-		storage.Solar *= 1000
+	if data.Pacunit == "W" {
+		storage.Solar /= 1000
 	}
 	storage.Excess = storage.Solar - storage.Usage
-	storage.IsExcess = storage.Excess > -100
+	storage.IsExcess = storage.Excess > -0.1
 	storage.Date = overview.Time
 	return storage
 }
 
 func (storage Storage) Message() string {
-	var e string
-	if storage.Excess >= 0 {
-		e = "☀️ Excess"
-		if storage.Excess >= 700 {
-			e = "☀️☀️ Excess"
-		}
-	} else {
-		e = "🔌 Insufficient"
+	if storage.Excess > -0.1 {
+		return "☀️ Excess"
 	}
 	load := math.Abs(storage.Excess)
-	return fmt.Sprintf("%s: %.2fW", e, load)
+	return fmt.Sprintf("🔌 Insufficient: %.2fkW", load)
 }
 
 func (storage Storage) Save(path string) error {
