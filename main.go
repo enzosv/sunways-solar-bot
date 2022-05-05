@@ -130,39 +130,7 @@ func (storage Storage) Save(path string) error {
 	return ioutil.WriteFile(path, latest, 0644)
 }
 
-func (storage Storage) Post(client *http.Client, sheetyURL, sheetyAuth string) error {
-	// TODO: google sheets api
-	// TODO: batch insert from history per time range
-	row := map[string]interface{}{}
-	row["date"] = storage.Date
-	row["excessWatts"] = storage.Excess
-	row["usageWatts"] = storage.Usage
-	row["solarWatts"] = storage.Solar
-	payload := map[string]interface{}{}
-	payload["sheet1"] = row
-	jsonValue, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequest("POST", sheetyURL, bytes.NewReader(jsonValue))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	if sheetyAuth != "" {
-		req.Header.Set("Authorization", sheetyAuth)
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	_, err = ioutil.ReadAll(res.Body)
-	return err
-}
-
 func main() {
-	// TODO: stop at night
 	output := flag.String("o", "old.json", "output file")
 	configPath := flag.String("c", "config.json", "config file")
 	flag.Parse()
@@ -182,10 +150,8 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if config.SheetyURL != "" {
-		storage.Post(client, config.SheetyURL, config.SheetyAuth)
-	}
-
+	// google apps script is used to store records
+	///sys/curve/station/getGridConnectedData?id=1520228626558156802&durationType=1&date=" + date + "&stationType=2&timeZoneOffset=480
 	if storage.IsExcess == old.IsExcess {
 		// no dif
 		return
